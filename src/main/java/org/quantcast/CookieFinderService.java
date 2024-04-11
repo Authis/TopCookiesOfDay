@@ -5,13 +5,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quantcast.common.DailyCookiesConstants;
 import org.quantcast.common.DailyCookiesUtils;
+import org.quantcast.exceptions.CommonExceptions;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,30 +22,65 @@ public class CookieFinderService {
 
     private final DailyCookiesUtils dailyCookiesUtils;
 
-    @Value("${display-date-format}")
-    String displayDateFormat;
+    public Map<String, Integer> getTopActiveCookies(ApplicationArguments args) throws Exception {
+        Map<String, String> dataMap;
+        dataMap = getFileNameDateType(args);
 
-    public void getTopActiveCookies(String fileName, String date, String dateType) {
-        List<String> cookiesOfTheDay = logCookieReader.readCookies(fileName, date, dateType);
+        List<String> cookiesOfTheDay = logCookieReader.readCookies(dataMap.get("fileName"), dataMap.get("date"), dataMap.get("dateType"));
         Map<String, Integer> result;
         if (null != cookiesOfTheDay && cookiesOfTheDay.size() > 0) {
             result = findTheTopActiveCookies(cookiesOfTheDay);
-            System.out.println(DailyCookiesConstants.MOST_ACTIVE_COOKIES_INFO);
-            logger.info(DailyCookiesConstants.MOST_ACTIVE_COOKIES_INFO);
-            Optional.ofNullable(result)
-                    .filter(resultElm -> !resultElm.isEmpty())
-                    .ifPresentOrElse(resultElm -> resultElm.entrySet()
-                            .forEach(elm -> printResults(elm, date)), () -> System.out.println(DailyCookiesConstants.NO_MOST_ACTIVE_COOKIES_FOUND));
+
+//            Optional.ofNullable(result)
+//                    .filter(resultElm -> !resultElm.isEmpty())
+//                    .ifPresentOrElse(resultElm -> resultElm.entrySet()
+//                            .forEach(CookieFinderService::printResults), () -> System.out.println(DailyCookiesConstants.NO_MOST_ACTIVE_COOKIES_FOUND));
+
+             if(!result.isEmpty()){
+                 return result;
+             }else{
+                 System.out.println(DailyCookiesConstants.NO_MOST_ACTIVE_COOKIES_FOUND);
+             }
+
         } else {
             System.out.println(DailyCookiesConstants.NO_COOKIES_FOUND);
             logger.info(DailyCookiesConstants.NO_COOKIES_FOUND);
+            return Collections.emptyMap();
         }
+        return Collections.emptyMap();
     }
 
-    public void printResults(Map.Entry<String, Integer> elm, String date) {
-        logger.info(" : " + elm.getKey() + " : " + elm.getValue());
-        System.out.println(elm.getKey() + " : " + elm.getValue());
+
+    public Map<String, String> getFileNameDateType(ApplicationArguments args) throws Exception {
+        Map<String, String> dataMap = new HashMap<>();
+
+        String fileName;
+        String date;
+        String dateType;
+        List<String> cmdArgs = args.getNonOptionArgs();
+
+        fileName = dailyCookiesUtils.commandLineDataExtractor("-f", cmdArgs);
+        date = dailyCookiesUtils.commandLineDataExtractor("-d", cmdArgs);
+        dateType = dailyCookiesUtils.dateTypeAndValidityChecker(date);
+        dataMap.put("fileName", fileName);
+        dataMap.put("date", date);
+        dataMap.put("dateType", dateType);
+
+
+        if (fileName.equals(DailyCookiesConstants.NONE) || date.equals(DailyCookiesConstants.NONE)) {
+            logger.error(DailyCookiesConstants.MISSING_INPUT_ERROR_MESSAGE);
+            throw new CommonExceptions.MissingInputException(DailyCookiesConstants.MISSING_INPUT_ERROR_MESSAGE);
+        }
+
+        if (dateType.equals(DailyCookiesConstants.INVALID_DATE)) {
+            logger.error(DailyCookiesConstants.INVALID_DATE_ERROR_MESSAGE);
+            throw new CommonExceptions.InvalidDateException(DailyCookiesConstants.INVALID_DATE_ERROR_MESSAGE);
+        }
+
+        return dataMap;
     }
+
+
 
     public static Map<String, Integer> findTheTopActiveCookies(List<String> cookiesOfTheDay) {
         Map<String, Integer> topCookies = new HashMap<>();
