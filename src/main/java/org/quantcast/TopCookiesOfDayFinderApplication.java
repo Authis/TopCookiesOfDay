@@ -8,6 +8,7 @@ import org.quantcast.exceptions.CommonExceptions;
 import org.quantcast.common.DailyCookiesUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -16,7 +17,7 @@ import java.util.Map;
 
 @SpringBootApplication
 @RequiredArgsConstructor
-public class TopCookiesOfDayFinderApplication implements ApplicationRunner {
+public class TopCookiesOfDayFinderApplication implements CommandLineRunner {
 
     private static final Logger logger = LogManager.getLogger(TopCookiesOfDayFinderApplication.class);
 
@@ -30,7 +31,7 @@ public class TopCookiesOfDayFinderApplication implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args)  throws Exception{
+    public void run(String[] args)  throws Exception{
         logger.info(DailyCookiesConstants.COOKIE_FINDING_START_MESSAGE);
         Map<String,Integer> result = cookieFinderService.getTopActiveCookies(args);
         if(!result.isEmpty()) {

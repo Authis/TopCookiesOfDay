@@ -6,12 +6,10 @@ import org.apache.logging.log4j.Logger;
 import org.quantcast.common.DailyCookiesConstants;
 import org.quantcast.common.DailyCookiesUtils;
 import org.quantcast.exceptions.CommonExceptions;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
+ import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +20,7 @@ public class CookieFinderService {
 
     private final DailyCookiesUtils dailyCookiesUtils;
 
-    public Map<String, Integer> getTopActiveCookies(ApplicationArguments args) throws Exception {
+    public Map<String, Integer> getTopActiveCookies(String [] args) throws Exception {
         Map<String, String> dataMap;
         dataMap = getFileNameDateType(args);
 
@@ -31,14 +29,10 @@ public class CookieFinderService {
         if (null != cookiesOfTheDay && cookiesOfTheDay.size() > 0) {
             result = findTheTopActiveCookies(cookiesOfTheDay);
 
-//            Optional.ofNullable(result)
-//                    .filter(resultElm -> !resultElm.isEmpty())
-//                    .ifPresentOrElse(resultElm -> resultElm.entrySet()
-//                            .forEach(CookieFinderService::printResults), () -> System.out.println(DailyCookiesConstants.NO_MOST_ACTIVE_COOKIES_FOUND));
-
              if(!result.isEmpty()){
                  return result;
              }else{
+                 logger.info(DailyCookiesConstants.NO_MOST_ACTIVE_COOKIES_FOUND);
                  System.out.println(DailyCookiesConstants.NO_MOST_ACTIVE_COOKIES_FOUND);
              }
 
@@ -51,21 +45,17 @@ public class CookieFinderService {
     }
 
 
-    public Map<String, String> getFileNameDateType(ApplicationArguments args) throws Exception {
+    public Map<String, String> getFileNameDateType(String[] args) throws Exception {
         Map<String, String> dataMap = new HashMap<>();
 
         String fileName;
         String date;
         String dateType;
-        List<String> cmdArgs = args.getNonOptionArgs();
+        List<String> cmdArgs = Arrays.asList(args); //args.getNonOptionArgs();
 
         fileName = dailyCookiesUtils.commandLineDataExtractor("-f", cmdArgs);
         date = dailyCookiesUtils.commandLineDataExtractor("-d", cmdArgs);
         dateType = dailyCookiesUtils.dateTypeAndValidityChecker(date);
-        dataMap.put("fileName", fileName);
-        dataMap.put("date", date);
-        dataMap.put("dateType", dateType);
-
 
         if (fileName.equals(DailyCookiesConstants.NONE) || date.equals(DailyCookiesConstants.NONE)) {
             logger.error(DailyCookiesConstants.MISSING_INPUT_ERROR_MESSAGE);
@@ -76,6 +66,9 @@ public class CookieFinderService {
             logger.error(DailyCookiesConstants.INVALID_DATE_ERROR_MESSAGE);
             throw new CommonExceptions.InvalidDateException(DailyCookiesConstants.INVALID_DATE_ERROR_MESSAGE);
         }
+        dataMap.put("fileName", fileName);
+        dataMap.put("date", date);
+        dataMap.put("dateType", dateType);
 
         return dataMap;
     }

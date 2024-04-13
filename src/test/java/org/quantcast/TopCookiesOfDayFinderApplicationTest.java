@@ -1,22 +1,16 @@
 package org.quantcast;
 
 import org.junit.jupiter.api.Test;
-import org.quantcast.common.DailyCookiesUtils;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.DefaultApplicationArguments;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-
-@SpringBootTest
+@SpringBootTest(classes = TopCookiesOfDayFinderApplication.class,args = {"-f","cookie_log.csv", "-d","2018-12-09"})
 class TopCookiesOfDayFinderApplicationTest {
+
 
     @Test
     public void contextLoads() {
+
     }
 
 

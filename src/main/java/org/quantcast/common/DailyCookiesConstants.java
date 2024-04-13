@@ -34,7 +34,7 @@ public class DailyCookiesConstants {
 
     public static final String MISSING_INPUT_ERROR_MESSAGE = "Filename or Date is missing. Please provide both filename and date.";
 
-    public static final String INVALID_DATE_ERROR_MESSAGE = "The provided date is invalid or in an incorrect format.";
+    public static final String INVALID_DATE_ERROR_MESSAGE = "The provided date is invalid or not in the correct format.";
 
     public static final String COOKIE_FINDING_START_MESSAGE = "Finding Cookies of the Day begins :-";
 
