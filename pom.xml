@@ -97,6 +97,7 @@
                 <configuration>
                     <excludes>
                         <exclude>org/quantcast/common/DailyCookiesConstants.java</exclude>
+<!--                        <exclude>org/quantcast/exceptions/CommonExceptions.java</exclude>-->
                     </excludes>
                 </configuration>
                 <executions>

@@ -1,33 +1,26 @@
 package org.quantcast;
 
 
-
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.SystemOutRule;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.quantcast.exceptions.CommonExceptions;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.boot.test.system.OutputCaptureRule;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 @SpringBootTest(classes = TopCookiesOfDayFinderApplication.class,args = {"-f","cookie_log.csv", "-d","2018-12-09"})
 @TestPropertySource(locations = "classpath:application.properties")
-@ExtendWith(OutputCaptureExtension.class)
+
 class CookieFinderServiceTest {
 
     @Autowired
@@ -36,11 +29,7 @@ class CookieFinderServiceTest {
     @Rule
     public final SystemOutRule systemOutRule = new SystemOutRule().enableLog();
 
-//    String[] commandLineArgs = {};
-//    @BeforeEach
-//    public void setUp(){
-//       commandLineArgs = new String[]{"-f", "cookie_log.csv", "-d", "2018-32-07T14:19:00+00:00"};
-//    }
+
         @Test
 
         void getTopActiveCookies_With_Valid_FileName_And_Valid_Date_WithMultipleResult() throws Exception {
@@ -78,28 +67,36 @@ class CookieFinderServiceTest {
         assertEquals(result,expectedResult);
 
     }
-//    @Test
-//    void getTopActiveCookies_With_Valid_FileName_And_Valid_UTCDateWithNOCookiesFound() throws Exception {
-//        String[] commandLineArgs = { "-f","cookie_log.csv", "-d","2018-12-12T14:19:00+00:00" };
-//        Map<String,Integer> expectedResult = new HashMap<>();
-//        Map<String,Integer> result  = cookieFinderService.getTopActiveCookies( commandLineArgs );
-//        assertEquals(result,expectedResult);
-//
-//
-//
-//        String consoleOutput = systemOutRule.getLog().trim();
-//        assertEquals("No Cookies found.", consoleOutput);
-//    }
+    @Test
+    void getTopActiveCookies_With_Valid_FileName_And_Valid_UTCDateWithNOCookiesFound() throws Exception {
 
-//    @Test
-//    void getTopActiveCookies_With_Valid_FileName_And_Valid_UTCDateWithNO_MOST_ACTIVE_COOKIES_FOUND() throws Exception {
-//        String[] commandLineArgs = { "-f","cookie_log.csv", "-d","2018-12-07T14:19:00+00:00" };
-//        Map<String,Integer> expectedResult = new HashMap<>();
-//        Map<String,Integer> result  = cookieFinderService.getTopActiveCookies( commandLineArgs );
-//        assertEquals(result,expectedResult);
-//        String consoleOutput = System.out.toString();
-//        assertEquals("No Most active Cookie(s) found.", consoleOutput);
-//    }
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+        String[] commandLineArgs = { "-f","cookie_log.csv", "-d","2018-12-12T14:19:00+00:00" };
+        Map<String,Integer> expectedResult = new HashMap<>();
+        Map<String,Integer> result  = cookieFinderService.getTopActiveCookies( commandLineArgs );
+        assertEquals(result,expectedResult);
+
+        System.setOut(System.out);
+        String output = outContent.toString();
+        assertTrue(output.contains("No Cookies found."));
+
+    }
+
+    @Test
+    void getTopActiveCookies_With_Valid_FileName_And_Valid_UTCDateWithNO_MOST_ACTIVE_COOKIES_FOUND() throws Exception {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+        String[] commandLineArgs = { "-f","cookie_log.csv", "-d","2018-12-07T14:19:00+00:00" };
+        Map<String,Integer> expectedResult = new HashMap<>();
+        Map<String,Integer> result  = cookieFinderService.getTopActiveCookies( commandLineArgs );
+        assertEquals(result,expectedResult);
+
+
+        System.setOut(System.out);
+        String output = outContent.toString();
+        assertTrue(output.contains("No Most active Cookie(s) found."));
+    }
 
     @Test
     void getTopActiveCookies_With_Valid_FileName_And_IN_VALID_DATE() throws Exception {
@@ -109,6 +106,26 @@ class CookieFinderServiceTest {
             cookieFinderService.getFileNameDateType(commandLineArgs);
         });
         assertEquals("The provided date is invalid or not in the correct format.", exception.getMessage());
+    }
+
+    @Test
+    void getTopActiveCookies_With_MIssingDate() throws Exception {
+        String[] commandLineArgs = { "-f","cookie_log.csv", "-d","" };
+
+        CommonExceptions.MissingInputException  exception = assertThrows(CommonExceptions.MissingInputException .class, () -> {
+            cookieFinderService.getFileNameDateType(commandLineArgs);
+        });
+        assertEquals("Filename or Date is missing. Please provide both filename and date.", exception.getMessage());
+    }
+
+    @Test
+    void getTopActiveCookies_With_MIssingFileName() throws Exception {
+        String[] commandLineArgs = { "-f","", "-d","2018-32-07T14:19:00+00:00" };
+
+        CommonExceptions.MissingInputException  exception = assertThrows(CommonExceptions.MissingInputException .class, () -> {
+            cookieFinderService.getFileNameDateType(commandLineArgs);
+        });
+        assertEquals("Filename or Date is missing. Please provide both filename and date.", exception.getMessage());
     }
 
 

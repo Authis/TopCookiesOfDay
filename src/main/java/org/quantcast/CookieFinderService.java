@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Logger;
 import org.quantcast.common.DailyCookiesConstants;
 import org.quantcast.common.DailyCookiesUtils;
 import org.quantcast.exceptions.CommonExceptions;
- import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,11 +19,21 @@ public class CookieFinderService {
 
     private final DailyCookiesUtils dailyCookiesUtils;
 
+
+    /**
+     * Retrieves the top active cookies for a given date based on the command line arguments.
+     *
+     * @param args Command line arguments containing file name and date.
+     * @return A map containing the top active cookies and their occurrences.
+     * @throws Exception If an error occurs while processing the cookies.
+     */
     public Map<String, Integer> getTopActiveCookies(String [] args) throws Exception {
         Map<String, String> dataMap;
         dataMap = getFileNameDateType(args);
 
-        List<String> cookiesOfTheDay = logCookieReader.readCookies(dataMap.get("fileName"), dataMap.get("date"), dataMap.get("dateType"));
+        List<String> cookiesOfTheDay = logCookieReader.readCookies(dataMap.get(DailyCookiesConstants.FILE_NAME),
+                dataMap.get(DailyCookiesConstants.DATE),
+                dataMap.get(DailyCookiesConstants.DATE_TYPE));
         Map<String, Integer> result;
         if (null != cookiesOfTheDay && cookiesOfTheDay.size() > 0) {
             result = findTheTopActiveCookies(cookiesOfTheDay);
@@ -44,6 +53,15 @@ public class CookieFinderService {
         return Collections.emptyMap();
     }
 
+    /**
+     * Extracts the file name, date, and date type from the command line arguments.
+     *
+     * @param args The command line arguments containing the file name and date.
+     * @return A map containing the extracted file name, date, and date type.
+     * @throws CommonExceptions.MissingInputException If the file name or date is missing in the command line arguments.
+     * @throws CommonExceptions.InvalidDateException  If the provided date is invalid.
+     * @throws Exception                              If an unexpected error occurs during extraction.
+     */
 
     public Map<String, String> getFileNameDateType(String[] args) throws Exception {
         Map<String, String> dataMap = new HashMap<>();
@@ -57,6 +75,7 @@ public class CookieFinderService {
         date = dailyCookiesUtils.commandLineDataExtractor("-d", cmdArgs);
         dateType = dailyCookiesUtils.dateTypeAndValidityChecker(date);
 
+
         if (fileName.equals(DailyCookiesConstants.NONE) || date.equals(DailyCookiesConstants.NONE)) {
             logger.error(DailyCookiesConstants.MISSING_INPUT_ERROR_MESSAGE);
             throw new CommonExceptions.MissingInputException(DailyCookiesConstants.MISSING_INPUT_ERROR_MESSAGE);
@@ -66,14 +85,19 @@ public class CookieFinderService {
             logger.error(DailyCookiesConstants.INVALID_DATE_ERROR_MESSAGE);
             throw new CommonExceptions.InvalidDateException(DailyCookiesConstants.INVALID_DATE_ERROR_MESSAGE);
         }
-        dataMap.put("fileName", fileName);
-        dataMap.put("date", date);
-        dataMap.put("dateType", dateType);
+        dataMap.put(DailyCookiesConstants.FILE_NAME, fileName);
+        dataMap.put(DailyCookiesConstants.DATE, date);
+        dataMap.put(DailyCookiesConstants.DATE_TYPE, dateType);
 
         return dataMap;
     }
 
-
+    /**
+     * Finds the top active cookies from a list of cookies observed on a given day greater than 1.
+     *
+     * @param cookiesOfTheDay A list of cookies observed on a specific day.
+     * @return A map containing the top active cookies and their counts which is greater than 1.
+     */
 
     public static Map<String, Integer> findTheTopActiveCookies(List<String> cookiesOfTheDay) {
         Map<String, Integer> topCookies = new HashMap<>();

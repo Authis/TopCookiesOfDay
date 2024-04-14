@@ -13,6 +13,12 @@ public class DailyCookiesConstants {
 
     public static final String EMPTY = "";
 
+    public static final String FILE_NAME = "fileName";
+
+    public static final String DATE = "date";
+
+    public static final String DATE_TYPE = "dateType";
+
 
     public static final String LOG_DIR_PATH = "${log.dir.path}";
 
@@ -27,8 +33,6 @@ public class DailyCookiesConstants {
     public static final String FILE_NOT_FOUND_ERROR = "File not found while reading CSV: ";
 
     public static final String IO_EXCEPTION_ERROR = "IO exception occurred while reading CSV: ";
-
-    public static final String SECURITY_EXCEPTION_ERROR = "Security exception occurred while reading CSV: ";
 
     public static final String UNEXPECTED_EXCEPTION_ERROR = "Unexpected exception occurred while reading CSV: ";
 
